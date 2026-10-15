@@ -1,0 +1,137 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class student extends JFrame {
+
+    private JPanel mainPanel;
+    private CardLayout cardLayout;
+
+    public student() {
+        setTitle("Student Portal");
+        setSize(900, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Main window layout
+        setLayout(new BorderLayout());
+
+        // HEADER PANEL
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(35, 52, 77));
+        headerPanel.setBorder(
+            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        );
+
+        JLabel title = new JLabel("Student Portal");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+
+        JButton profileButton = new JButton("My Profile");
+
+        headerPanel.add(title, BorderLayout.WEST);
+        headerPanel.add(profileButton, BorderLayout.EAST);
+
+        // SIDEBAR PANEL
+        JPanel sidebarPanel = new JPanel();
+        sidebarPanel.setLayout(
+            new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS)
+        );
+        sidebarPanel.setBackground(new Color(235, 240, 247));
+        sidebarPanel.setBorder(
+            BorderFactory.createEmptyBorder(15, 10, 15, 10)
+        );
+
+        JButton dashboardButton = new JButton("Dashboard");
+        JButton coursesButton = new JButton("My Courses");
+        JButton assignmentsButton = new JButton("Assignments");
+        JButton gradesButton = new JButton("Grades");
+
+        JButton[] buttons = {
+            dashboardButton,
+            coursesButton,
+            assignmentsButton,
+            gradesButton
+        };
+
+        for (JButton button : buttons) {
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            button.setMaximumSize(new Dimension(180, 40));
+            sidebarPanel.add(button);
+            sidebarPanel.add(Box.createVerticalStrut(10));
+        }
+
+        // MAIN CONTENT PANEL
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+
+        // DASHBOARD SCREEN
+        JPanel dashboardPanel = new JPanel();
+        dashboardPanel.setLayout(
+            new BoxLayout(dashboardPanel, BoxLayout.Y_AXIS)
+        );
+        dashboardPanel.setBorder(
+            BorderFactory.createEmptyBorder(25, 25, 25, 25)
+        );
+
+        JLabel welcomeLabel =
+            new JLabel("Welcome to your Student Dashboard!");
+
+        welcomeLabel.setFont(
+            new Font("Arial", Font.BOLD, 22)
+        );
+
+        dashboardPanel.add(welcomeLabel);
+        dashboardPanel.add(Box.createVerticalStrut(20));
+        dashboardPanel.add(
+            new JLabel("View your courses, assignments, and grades.")
+        );
+
+        // COURSES SCREEN
+        JPanel coursesPanel = new JPanel();
+        coursesPanel.add(new JLabel("Your Courses"));
+
+        // ASSIGNMENTS SCREEN
+        JPanel assignmentsPanel = new JPanel();
+        assignmentsPanel.add(new JLabel("Your Assignments"));
+
+        // GRADES SCREEN
+        JPanel gradesPanel = new JPanel();
+        gradesPanel.add(new JLabel("Your Grades"));
+
+        // ADD SCREENS TO CARDLAYOUT
+        mainPanel.add(dashboardPanel, "Dashboard");
+        mainPanel.add(coursesPanel, "Courses");
+        mainPanel.add(assignmentsPanel, "Assignments");
+        mainPanel.add(gradesPanel, "Grades");
+
+        // BUTTON ACTIONS
+        dashboardButton.addActionListener(e ->
+            cardLayout.show(mainPanel, "Dashboard")
+        );
+
+        coursesButton.addActionListener(e ->
+            cardLayout.show(mainPanel, "Courses")
+        );
+
+        assignmentsButton.addActionListener(e ->
+            cardLayout.show(mainPanel, "Assignments")
+        );
+
+        gradesButton.addActionListener(e ->
+            cardLayout.show(mainPanel, "Grades")
+        );
+
+        // PLACE PANELS IN THE WINDOW
+        add(headerPanel, BorderLayout.NORTH);
+        add(sidebarPanel, BorderLayout.WEST);
+        add(mainPanel, BorderLayout.CENTER);
+
+        //Set Visible 
+        setVisible(true);
+
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new student());
+    }
+}
