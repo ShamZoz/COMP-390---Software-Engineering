@@ -3,12 +3,14 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+// Main class for the grade activity
 public class GradeActivity {
     private double score;
     private final JFrame frame = new JFrame("Mini Blackboard");
     private final List<Course> courses = new ArrayList<>();
     private final List<String> students = new ArrayList<>();
     private final Map<String, Double> grades = new LinkedHashMap<>();
+// Inner classes for Course, Test, and Question
 
     static class Course {
         String name;
@@ -30,7 +32,7 @@ public class GradeActivity {
             this.prompt = prompt; this.a = a; this.b = b; this.correct = correct;
         }
     }
-
+// Methods for GradeActivity such as setting score, getting score, and determining letter grade
     public GradeActivity() { score = 0.0; }
     public void setScore(double s) { score = s; }
     public double getScore() { return score; }
@@ -41,7 +43,7 @@ public class GradeActivity {
         else if (score >= 60) return 'D';
         else return 'F';
     }
-
+// GUI methods for the application such as creating buttons
     private JButton button(String label, Runnable action) {
         JButton b = new JButton(label);
         b.addActionListener(e -> action.run());
@@ -73,7 +75,8 @@ public class GradeActivity {
         return selected;
     }
     private void message(String text) { JOptionPane.showMessageDialog(frame, text); }
-
+// Main GUI methods for the application such as home, teacher, student, and their respective functionalities
+    
     private void home() {
         page("Mini Blackboard", button("Teacher Dashboard", this::teacher),
                 button("Student Dashboard", this::student), button("Exit", frame::dispose));
