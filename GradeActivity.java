@@ -1,7 +1,12 @@
-import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import javax.swing.*;
+
+// Libraries needed for messaging feature
+import javax.mail.*;
+import javax.mail.internet.*;
+import javax.activation.*;
 
 // Main class for the grade activity
 public class GradeActivity {
@@ -249,6 +254,21 @@ public class GradeActivity {
         home();
         frame.setVisible(true);
     }
+
+    // Message feature created by Jason
+    // References used: 
+    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
+    // https://mailtrap.io/blog/java-send-email/
+    // https://stackoverflow.com/questions/884943/how-do-i-send-an-e-mail-in-java
+    // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
+    public void sendEmail(){
+        String sender = ask("Sender address:");
+        String host = "localhost";
+        String reciever = ask("Recipiant address:");
+
+    }
+
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
     }
