@@ -3,11 +3,6 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
-// Libraries needed for messaging feature
-import javax.mail.*;
-import javax.mail.internet.*;
-import javax.activation.*;
-
 // Main class for the grade activity
 public class GradeActivity {
     private double score;
@@ -255,7 +250,7 @@ public class GradeActivity {
         frame.setVisible(true);
     }
 
-    // Message feature created by Jason
+    // Message feature IN PROGRESS
     // References used: 
     // https://www.geeksforgeeks.org/java/send-email-using-java-program/
     // https://mailtrap.io/blog/java-send-email/
