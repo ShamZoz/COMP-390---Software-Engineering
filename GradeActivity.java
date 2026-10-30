@@ -3,6 +3,11 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
+// Libraries for sending an email
+import javax.mail.*;
+import javax.mail.internet.*;
+import javax.activation.*;
+
 // Main class for the grade activity
 public class GradeActivity {
     private double score;
@@ -251,15 +256,61 @@ public class GradeActivity {
     }
 
     // Message feature IN PROGRESS
-    // References used: 
-    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
-    // https://mailtrap.io/blog/java-send-email/
+    // Main References used: 
     // https://stackoverflow.com/questions/884943/how-do-i-send-an-e-mail-in-java
     // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
+
+    // Other References:
+    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
+    // https://mailtrap.io/blog/java-send-email/
     public void sendEmail(){
-        String sender = ask("Sender address:");
+
+        // Get information
+        String emailSender = ask("Sender address:");
         String host = "localhost";
-        String reciever = ask("Recipiant address:");
+        String emailReciever = ask("Recipiant address:");
+        String emailSubject = ask("Email Subject? ");
+        String emailMessage = ask("Email Message: ");
+
+        // Get the session object and system properties
+        Properties properties = System.getProperties(); 
+
+        // Setup mail server
+        // SMTP is 'Simple Mail Transfer Protocol host'
+        // This example uses host, but some common SMTPs are gmail and outlook
+        properties.setProperty("mail.smtp.host", host); 
+
+        // Get the default Session object
+        // The session object is used for data storing of properties
+        // https://docs.oracle.com/javaee/7/api/javax/mail/Session.html
+        // https://www.geeksforgeeks.org/java/session-management-in-java/
+        
+//        Session session = Session.getDefaultInstance(properties); 
+
+        // compose the message
+//        try {
+
+            // javax.mail.internet.MimeMessage class is mostly used for abstraction,
+            // which is the concept of hiding unnecessary, complex details from user
+//            MimeMessage message = new MimeMessage(session); 
+
+
+            // header field of the header.
+//            message.setFrom(new InternetAddress(emailSender)); 
+//            message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailReciever));
+//            message.setSubject(emailSubject);
+//            message.setText(emailMessage);
+
+            // Send message
+//            Transport.send(message);
+//            System.out.println("Email successfully sent!");
+//        }
+
+        // Error handeling: MessagingException is "the base class for all exceptions thrown by the Messaging classes"
+        // https://docs.oracle.com/javaee/7/api/javax/mail/MessagingException.html
+//        catch (MessagingException mex) {
+//            mex.printStackTrace();
+//        }
 
     }
 
