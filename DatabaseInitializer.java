@@ -52,7 +52,6 @@ public class DatabaseInitializer {
                 )
             """);
 
-
             // Fill example data into student table
             st.execute("""
                 INSERT OR IGNORE INTO students(student_id, student_name, email) VALUES
@@ -72,6 +71,7 @@ public class DatabaseInitializer {
                 ('Test 1','Unit 3.14159265 Exam')
             """);
 
+            // Fill example data into assignmentScore table
             st.execute("""
                 INSERT OR IGNORE INTO assignmentScore(student_id, course_id, assignment_id) VALUES
                 (1, 'COMP151', '76')
