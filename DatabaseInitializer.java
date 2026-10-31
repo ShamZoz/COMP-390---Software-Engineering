@@ -1,5 +1,5 @@
 // This file creates the database that the system uses
-// The code was modified from the example presented in the FindMyStudyPartner_Prototype1 app)
+// The code was modified from the example presented in the FindMyStudyPartner_Prototype1 app
 
 // To do:
 // Implement foreign keys and grades
@@ -20,7 +20,7 @@ public class DatabaseInitializer {
             // Create a student table
             st.execute("""
                 CREATE TABLE IF NOT EXISTS students (
-                    student_id TEXT PRIMARY KEY AUTOINCREMENT,
+                    student_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     student_name TEXT NOT NULL,
                     email TEXT NOT NULL UNIQUE
                 )
@@ -29,7 +29,7 @@ public class DatabaseInitializer {
             // Create a course table
             st.execute("""
                 CREATE TABLE IF NOT EXISTS courses (
-                    course_id TEXT PRIMARY KEY AUTOINCREMENT,
+                    course_id TEXT PRIMARY KEY NOT NULL UNIQUE,
                     course_title TEXT NOT NULL,
                 )
             """);
@@ -42,12 +42,22 @@ public class DatabaseInitializer {
                 )
             """);
 
+            // Create an assignment-score table
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS assignmentScore (
+                    score_id INTEGER NOT NULL,
+                    FOREIGN KEY(student_id) REFERENCES students(student_id),
+                    FOREIGN KEY(course_id) REFERENCES courses(course_id),
+                    FOREIGN KEY(assignments_id) REFERENCES assignments(assignment_id)
+                )
+            """);
+
 
             // Fill example data into student table
             st.execute("""
                 INSERT OR IGNORE INTO students(student_id, student_name, email) VALUES
-                ('S01','Cool Kid','coolkid@bridgew.edu'),
-                ('S02','Joe','Cool','joecool@msn.com'),
+                (1,'Cool Kid','coolkid@bridgew.edu'),
+                (2,'Joe','Cool','joecool@msn.com'),
             """);
 
             // Fill example data into course table
@@ -60,6 +70,12 @@ public class DatabaseInitializer {
             st.execute("""
                 INSERT OR IGNORE INTO assignments(assignment_id, assignment_title) VALUES
                 ('Test 1','Unit 3.14159265 Exam')
+            """);
+
+            st.execute("""
+                INSERT OR IGNORE INTO assignmentScore(student_id, course_id, assignment_id) VALUES
+                (1, 'COMP151', '76')
+                (2, 'COMP151', '88')
             """);
         }
     }
