@@ -8,12 +8,12 @@
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DatabaseInitializer {
     public static void initialize(Database database) throws SQLException {
 
-        // THIS LINE IS HAVING ISSUES. IT DOESN'T RECOGNIZE STATEMENT.
-        // Perhaps another file needs statement defined?
+        
         try (Connection conn = database.getConnection(); Statement st = conn.createStatement()) {
 
 
