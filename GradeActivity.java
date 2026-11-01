@@ -2,35 +2,41 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.io.*;
 
+// Main class for the grade activity
 public class GradeActivity {
     private double score;
     private final JFrame frame = new JFrame("Mini Blackboard");
     private final List<Course> courses = new ArrayList<>();
     private final List<String> students = new ArrayList<>();
     private final Map<String, Double> grades = new LinkedHashMap<>();
+// Inner classes for Course, Test, and Question
 
-    static class Course {
+    static class Course implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
         String name;
         List<String> enrolled = new ArrayList<>();
         List<Test> tests = new ArrayList<>();
         Course(String name) { this.name = name; }
         public String toString() { return name; }
     }
-    static class Test {
+    static class Test implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
         String name;
         List<Question> questions = new ArrayList<>();
         Test(String name) { this.name = name; }
         public String toString() { return name; }
     }
-    static class Question {
+    static class Question implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
         String prompt, a, b;
         int correct;
         Question(String prompt, String a, String b, int correct) {
             this.prompt = prompt; this.a = a; this.b = b; this.correct = correct;
         }
     }
-
+// Methods for GradeActivity such as setting score, getting score, and determining letter grade
     public GradeActivity() { score = 0.0; }
     public void setScore(double s) { score = s; }
     public double getScore() { return score; }
@@ -41,7 +47,7 @@ public class GradeActivity {
         else if (score >= 60) return 'D';
         else return 'F';
     }
-
+// GUI methods for the application such as creating buttons
     private JButton button(String label, Runnable action) {
         JButton b = new JButton(label);
         b.addActionListener(e -> action.run());
@@ -73,43 +79,91 @@ public class GradeActivity {
         return selected;
     }
     private void message(String text) { JOptionPane.showMessageDialog(frame, text); }
-
+// Main GUI methods for the application such as home, teacher, student, and their respective functionalities
+    
     private void home() {
-        page("Mini Blackboard", button("Teacher Dashboard", this::teacher),
-                button("Student Dashboard", this::student), button("Exit", frame::dispose));
-    }
+    page("Mini Blackboard",
+        button("Teacher Dashboard", this::teacherLogin),
+        button("Student Dashboard", this::student),
+        button("Exit", frame::dispose)
+    );
+}
+    
     private void teacher() {
-        page("Teacher Dashboard", button("Add Class", this::addClass),
-                button("Add Student", this::addStudent),
-                button("Enroll Student", this::enroll),
-                button("Create Test", this::createTest),
-                button("View Grades", this::viewGrades), button("Back", this::home));
+
+    if (!teacherAuthenticated) {
+        teacherLogin();
+        return;
     }
-    private void addClass() {
-        String name = ask("Class name (e.g. COMP 101):");
-        if (name != null) { courses.add(new Course(name)); message("Class created!"); }
+
+    page("Teacher Dashboard",
+        button("Add Class", this::addClass),
+        button("Add Student", this::addStudent),
+        button("Enroll Student", this::enroll),
+        button("Create Test", this::createTest),
+        button("View Grades", this::viewGrades),
+        button("Logout", this::teacherLogout));
+
+}
+private boolean teacherAuthenticated = false;
+
+// Verify the teacher before allowing access
+private void teacherLogin() {
+    if (TeacherLogin.verifyAccess(frame)) {
+        teacherAuthenticated = true;
         teacher();
     }
+}
+
+// Log out of the teacher dashboard
+private void teacherLogout() {
+    teacherAuthenticated = false;
+    home();
+}
+private boolean requireTeacher() {
+    if (!teacherAuthenticated) {
+        message("Access Denied. Teacher login required.");
+        home();
+        return false;
+    }
+    return true;
+}
+    private void addClass() {
+        if (!requireTeacher()) return;
+        String name = ask("Class name (e.g. COMP 101):");
+        if (name != null) {
+            courses.add(new Course(name));
+            saveData();
+            message("Class created!");
+        }
+        teacher();
+    }
+
     private void addStudent() {
+     if (!requireTeacher()) return;
         String name = ask("Student name:");
         if (name != null && !students.contains(name)) {
             students.add(name);
+            saveData();
             message("Student added!");
         }
         teacher();
     }
     private void enroll() {
+     if (!requireTeacher()) return;
         String name = choose("Select student:", students);
         if (name != null) {
             Course c = choose("Select class:", courses);
             if (c != null) {
                 if (!c.enrolled.contains(name)) c.enrolled.add(name);
+                saveData();
                 message(name + " enrolled in " + c.name);
             }
         }
         teacher();
     }
     private void createTest() {
+     if (!requireTeacher()) return;
         Course c = choose("Choose class:", courses);
         if (c == null) { teacher(); return; }
         String name = ask("Test name:");
@@ -132,11 +186,13 @@ public class GradeActivity {
         }
         if (!test.questions.isEmpty()) {
             c.tests.add(test);
+            saveData();
             message("Test created with " + test.questions.size() + " questions!");
         } else message("No questions added; test was not saved.");
         teacher();
     }
     private void viewGrades() {
+        if (!requireTeacher()) return;  
         if (grades.isEmpty()) { message("No grades yet."); return; }
         StringBuilder sb = new StringBuilder("Grades:\n\n");
         grades.forEach((key, value) -> {
@@ -218,6 +274,7 @@ public class GradeActivity {
             for (JRadioButton b : correctButtons) if (b.isSelected()) correct++;
             setScore(100.0 * correct / test.questions.size());
             grades.put(key, getScore());
+            saveData();
             message("Exam submitted!\nCorrect: " + correct + "/" + test.questions.size()
                     + "\nScore: " + String.format("%.1f", getScore()) + "%\nGrade: " + getGrade());
             break;
@@ -243,10 +300,70 @@ public class GradeActivity {
         frame.setSize(520, 460);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
+
+        loadData();
+
         home();
         frame.setVisible(true);
     }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
     }
+
+    // Mini Blackboard Data to keep and store all information
+    private static final String DATA_FILE = "blackboard.dat";
+
+    // Save all application data
+    private void saveData() {
+        MiniBlackboardData data =
+             new MiniBlackboardData(courses, students, grades);
+
+        try (ObjectOutputStream out =
+                new ObjectOutputStream(
+                    new FileOutputStream(DATA_FILE))) {
+
+            out.writeObject(data);
+            System.out.println("Data saved successfully.");
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(
+                frame, "Error saving data: " + e.getMessage()
+            );
+        }
+    }
+
+    // Load previously saved data
+    private void loadData() {
+        File file = new File(DATA_FILE);
+
+        if (!file.exists()) {
+            return;
+        }
+
+        try (ObjectInputStream in =
+                new ObjectInputStream(
+                    new FileInputStream(file))) {
+
+            MiniBlackboardData data =
+                (MiniBlackboardData) in.readObject();
+
+            courses.clear();
+            courses.addAll(data.courses);
+
+            students.clear();
+            students.addAll(data.students);
+
+            grades.clear();
+            grades.putAll(data.grades);
+
+            System.out.println("Data loaded successfully.");
+
+        } catch (IOException | ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(
+                frame, "Error loading data: " + e.getMessage()
+            );
+        }
+    }
 }
+
