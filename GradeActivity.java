@@ -62,7 +62,7 @@ public class GradeActivity {
         frame.revalidate();
         frame.repaint();
     }
-    private String ask(String message) {
+    public String ask(String message) {
         String s = JOptionPane.showInputDialog(frame, message);
         return s == null || s.trim().isEmpty() ? null : s.trim();
     }
@@ -88,6 +88,8 @@ public class GradeActivity {
                 button("Add Student", this::addStudent),
                 button("Enroll Student", this::enroll),
                 button("Create Test", this::createTest),
+
+
                 button("View Grades", this::viewGrades), button("Back", this::home));
     }
     private void addClass() {

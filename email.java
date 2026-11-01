@@ -1,19 +1,18 @@
-// Libraries for sending an email ---> ERROR IS HERE!!! The libraries aren't recognized despite
-// vscode saying the functions are and the program still runs despite them being underlined in red?
+// Libraries for sending an email ---> Despite their red underlines, they are functional
 import java.util.Properties;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Authenticator;
 
 public class email extends GradeActivity {
-    private final JFrame frame = new JFrame("Mini Blackboard");
+
 
     // Message feature
     // Main References used: 
@@ -22,76 +21,79 @@ public class email extends GradeActivity {
     // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
     // https://mailtrap.io/blog/java-send-email/
 
-
-    
-    private String ask(String message) {
-        String s = JOptionPane.showInputDialog(frame, message);
-        return s == null || s.trim().isEmpty() ? null : s.trim();
-    }
-
-
-
     public void sendEmail(){
 
         // Get information
-        String emailSender = ask("Please enter your email: ");
+        String emailSender = ask("Please enter your email address: ");
+
         String emailPassword = ask("Please enter your password: ");
-        String host = "localhost";
+
+
+        //String host = "localhost";
         String emailReciever = ask("Recipiant address:");
         String emailSubject = ask("Email Subject? ");
         String emailMessage = ask("Email Message: ");
 
-        // Get the SMTP (Simple Mail Transfer Protocol host) properties. This includes the host name and port
-        // Alternatively, you can email with smtp.gmail.com on the same port
-        Properties props = new Properties();
+
+        // Set up the SMTP (Simple Mail Transfer Protocol host) server.
+        java.util.Properties props = new java.util.Properties();
+
+
+        // For security purposes
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.office365.com");
+
+        // Connect to SMTP, in this case outlook (The server the email is being sent through)
+
+        props.put("mail.smtp.host", "smtp-mail.outlook.com");
         props.put("mail.smtp.port", "587");
 
 
-        // Authenticate session
+        // OLD SESSION CREATOR --> Errors due to lack of authentication
+        //Session session = Session.getDefaultInstance(props, null);
+
+        // Sources:
         // https://docs.oracle.com/javaee/7/api/javax/mail/Session.html
         // https://www.geeksforgeeks.org/java/session-management-in-java/
         // https://docs.oracle.com/javase/8/docs/api/java/net/PasswordAuthentication.html
 
-        // PasswordAuthentication takes a string and a char array, so we must convert emailpassword
-        // to a char array
-        // https://www.w3schools.com/java/ref_string_tochararray.asp
-        char[] password = emailPassword.toCharArray();
-
         
-        // Current session creation has issues with authentication. An altnerative is provided below
-                    //Session session = Session.getInstance(props, new Authenticator() {
-                    //protected PasswordAuthentication getPasswordAuthentication() {
+        // Create the Session object and authenticate it using your password
+        Session session = Session.getInstance(props, new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
 
-                    //    return new PasswordAuthentication(emailSender, password);
-                    //}
+                    return new PasswordAuthentication(emailSender, emailPassword);
+                }
 
-                //});
-
-        // Use this one instead      
-        Session session = Session.getDefaultInstance(props); 
-        
+            });
 
         // compose the message
         try {
 
-            // javax.mail.internet.MimeMessage class is mostly used for abstraction,
-            // which is the concept of hiding unnecessary, complex details from user
-            MimeMessage message = new MimeMessage(session); 
+            // Create a message
+            Message message = new MimeMessage(session); 
 
 
-            // header field of the header.
+            // Fill email with sender, recipient, subject, and the text
             message.setFrom(new InternetAddress(emailSender)); 
             message.setRecipient(Message.RecipientType.TO, new InternetAddress(emailReciever));
             message.setSubject(emailSubject);
             message.setText(emailMessage);
 
-            // Send message
+
+
+            // Send message ---> This is where jakarta.activation is needed to keep prevent an error
             Transport.send(message);
             System.out.println("Email successfully sent!");
+
+            //Instead, print to console
+            //System.out.println("Sender " + emailSender);
+            //System.out.println("To " + emailReciever);
+            //System.out.println("Subject " + emailSubject);
+            //System.out.println(emailMessage);
         }
+
+
 
         // Error handeling: MessagingException is "the base class for all exceptions thrown by the Messaging classes"
         // https://docs.oracle.com/javaee/7/api/javax/mail/MessagingException.html
@@ -99,6 +101,12 @@ public class email extends GradeActivity {
             mex.printStackTrace();
         }
 
+    }
+    
+    // Test the method
+    public static void main(String[] args) {
+        email myEmail = new email();
+        myEmail.sendEmail();
     }
 
 
