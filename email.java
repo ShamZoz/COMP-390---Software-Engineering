@@ -1,6 +1,17 @@
+// This program allows emails to be sent from within the program
+
+// Current Status: WIP ---> Caused by: sun.security.validator.ValidatorException: PKIX path 
+// building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid 
+// certification path to requested target
+
+// Main References used: 
+    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
+    // https://stackoverflow.com/questions/884943/how-do-i-send-an-e-mail-in-java
+    // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
+    // https://mailtrap.io/blog/java-send-email/
+
 // Libraries for sending an email ---> Despite their red underlines, they are functional
 import java.util.Properties;
-
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -14,22 +25,12 @@ import jakarta.mail.Authenticator;
 public class email extends GradeActivity {
 
 
-    // Message feature
-    // Main References used: 
-    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
-    // https://stackoverflow.com/questions/884943/how-do-i-send-an-e-mail-in-java
-    // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
-    // https://mailtrap.io/blog/java-send-email/
-
     public void sendEmail(){
 
         // Get information
         String emailSender = ask("Please enter your email address: ");
-
         String emailPassword = ask("Please enter your password: ");
-
-
-        //String host = "localhost";
+        String host = "localhost";
         String emailReciever = ask("Recipiant address:");
         String emailSubject = ask("Email Subject? ");
         String emailMessage = ask("Email Message: ");
@@ -39,12 +40,9 @@ public class email extends GradeActivity {
         java.util.Properties props = new java.util.Properties();
 
 
-        // For security purposes
+        // Connect to SMTP, in this case outlook (The server the email is being sent through)
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-
-        // Connect to SMTP, in this case outlook (The server the email is being sent through)
-
         props.put("mail.smtp.host", "smtp-mail.outlook.com");
         props.put("mail.smtp.port", "587");
 
