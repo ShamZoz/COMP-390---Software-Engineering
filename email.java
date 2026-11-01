@@ -3,12 +3,16 @@
 // Current Status: WIP ---> Caused by: sun.security.validator.ValidatorException: PKIX path 
 // building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid 
 // certification path to requested target
+// In other words, my computer doesn't trust Outlook
 
 // Main References used: 
     // https://www.geeksforgeeks.org/java/send-email-using-java-program/
     // https://stackoverflow.com/questions/884943/how-do-i-send-an-e-mail-in-java
     // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
     // https://mailtrap.io/blog/java-send-email/
+    // https://central.sonatype.com/artifact/com.sun.activation/jakarta.activation
+    // https://central.sonatype.com/artifact/jakarta.mail/jakarta.mail-api/versions
+    // https://central.sonatype.com/artifact/jakarta.activation/jakarta.activation-api
 
 // Libraries for sending an email ---> Despite their red underlines, they are functional
 import java.util.Properties;
@@ -79,7 +83,6 @@ public class email extends GradeActivity {
             message.setText(emailMessage);
 
 
-
             // Send message ---> This is where jakarta.activation is needed to keep prevent an error
             Transport.send(message);
             System.out.println("Email successfully sent!");
@@ -90,7 +93,6 @@ public class email extends GradeActivity {
             //System.out.println("Subject " + emailSubject);
             //System.out.println(emailMessage);
         }
-
 
 
         // Error handeling: MessagingException is "the base class for all exceptions thrown by the Messaging classes"
