@@ -1,11 +1,6 @@
 // This file creates the database that the system uses
 // The code was modified from the example presented in the FindMyStudyPartner_Prototype1 app
 
-// To do:
-// Implement foreign keys and grades
-// Implement join tables
-// Fix Bugs
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
