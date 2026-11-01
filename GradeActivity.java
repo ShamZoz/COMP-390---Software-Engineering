@@ -4,6 +4,7 @@ import java.util.List;
 import java.io.*;
 import javax.swing.*;
 
+
 // Main class for the grade activity
 public class GradeActivity {
     private double score;
@@ -11,8 +12,10 @@ public class GradeActivity {
     private final List<Course> courses = new ArrayList<>();
     private final List<String> students = new ArrayList<>();
     private final Map<String, Double> grades = new LinkedHashMap<>();
-// Inner classes for Course, Test, and Question
 
+
+// Inner classes for Course, Test, and Question
+    static class Course {
     static class Course implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
         String name;
@@ -64,7 +67,7 @@ public class GradeActivity {
         frame.revalidate();
         frame.repaint();
     }
-    private String ask(String message) {
+    public String ask(String message) {
         String s = JOptionPane.showInputDialog(frame, message);
         return s == null || s.trim().isEmpty() ? null : s.trim();
     }
@@ -90,6 +93,13 @@ public class GradeActivity {
 }
     
     private void teacher() {
+        page("Teacher Dashboard", button("Add Class", this::addClass),
+                button("Add Student", this::addStudent),
+                button("Enroll Student", this::enroll),
+                button("Create Test", this::createTest),
+
+
+                button("View Grades", this::viewGrades), button("Back", this::home));
 
     if (!teacherAuthenticated) {
         teacherLogin();
