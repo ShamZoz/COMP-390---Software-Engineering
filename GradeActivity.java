@@ -3,10 +3,15 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
-// Libraries for sending an email
-import javax.mail.*;
-import javax.mail.internet.*;
-import javax.activation.*;
+// Libraries for sending an email ---> ERROR IS HERE!!! The libraries aren't recognized despite
+// vscode saying the functions are and the program still runs despite them being underlined in red?
+//import jakarta.mail.*;
+//import jakarta.mail.internet.InternetAddress;
+//import jakarta.mail.internet.MimeMessage;
+//import jakarta.mail.internet.Session;
+//import jakarta.mail.internet.MessagingException;
+//import jakarta.mail.internet.Message;
+
 
 // Main class for the grade activity
 public class GradeActivity {
@@ -257,35 +262,52 @@ public class GradeActivity {
 
     // Message feature IN PROGRESS
     // Main References used: 
+    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
     // https://stackoverflow.com/questions/884943/how-do-i-send-an-e-mail-in-java
     // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
-
-    // Other References:
-    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
     // https://mailtrap.io/blog/java-send-email/
     public void sendEmail(){
 
         // Get information
-        String emailSender = ask("Sender address:");
+        String emailSender = ask("Please enter your email: ");
+        String emailPassword = ask("Please enter your password: ");
         String host = "localhost";
         String emailReciever = ask("Recipiant address:");
         String emailSubject = ask("Email Subject? ");
         String emailMessage = ask("Email Message: ");
 
-        // Get the session object and system properties
-        Properties properties = System.getProperties(); 
+        // Get the SMTP (Simple Mail Transfer Protocol host) properties. This includes the host name and port
+        // Alternatively, you can email with smtp.gmail.com on the same port
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.office365.com");
+        props.put("mail.smtp.port", "587");
 
-        // Setup mail server
-        // SMTP is 'Simple Mail Transfer Protocol host'
-        // This example uses host, but some common SMTPs are gmail and outlook
-        properties.setProperty("mail.smtp.host", host); 
 
-        // Get the default Session object
-        // The session object is used for data storing of properties
+        // Authenticate session
         // https://docs.oracle.com/javaee/7/api/javax/mail/Session.html
         // https://www.geeksforgeeks.org/java/session-management-in-java/
+        // https://docs.oracle.com/javase/8/docs/api/java/net/PasswordAuthentication.html
+
+        // PasswordAuthentication takes a string and a char array, so we must convert emailpassword
+        // to a char array
+        // https://www.w3schools.com/java/ref_string_tochararray.asp
+        char[] password = emailPassword.toCharArray();
+
         
-//        Session session = Session.getDefaultInstance(properties); 
+        // Current session creation has issues with authentication. An altnerative is provided below
+                    //Session session = Session.getInstance(props, new Authenticator() {
+                    //protected PasswordAuthentication getPasswordAuthentication() {
+
+                    //    return new PasswordAuthentication(emailSender, password);
+                    //}
+
+                //});
+
+        // Use this one instead      
+//        Session session = Session.getDefaultInstance(props); 
+        
 
         // compose the message
 //        try {
@@ -297,7 +319,7 @@ public class GradeActivity {
 
             // header field of the header.
 //            message.setFrom(new InternetAddress(emailSender)); 
-//            message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailReciever));
+//            message.setRecipient(Message.RecipientType.TO, new InternetAddress(emailReciever));
 //            message.setSubject(emailSubject);
 //            message.setText(emailMessage);
 
