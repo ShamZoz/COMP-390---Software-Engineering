@@ -3,6 +3,7 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
+
 // Main class for the grade activity
 public class GradeActivity {
     private double score;
@@ -10,8 +11,9 @@ public class GradeActivity {
     private final List<Course> courses = new ArrayList<>();
     private final List<String> students = new ArrayList<>();
     private final Map<String, Double> grades = new LinkedHashMap<>();
-// Inner classes for Course, Test, and Question
 
+
+// Inner classes for Course, Test, and Question
     static class Course {
         String name;
         List<String> enrolled = new ArrayList<>();
@@ -86,6 +88,8 @@ public class GradeActivity {
                 button("Add Student", this::addStudent),
                 button("Enroll Student", this::enroll),
                 button("Create Test", this::createTest),
+
+
                 button("View Grades", this::viewGrades), button("Back", this::home));
     }
     private void addClass() {
