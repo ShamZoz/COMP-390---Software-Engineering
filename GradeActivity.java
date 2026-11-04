@@ -48,18 +48,135 @@ public class GradeActivity {
         else return 'F';
     }
 // GUI methods for the application such as creating buttons
+    // Cosmetic styling only: keep every original button action.
     private JButton button(String label, Runnable action) {
-        JButton b = new JButton(label);
+        JButton b = new JButton(label) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                // Paint rounded cards consistently, including on macOS.
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                    RenderingHints.VALUE_ANTIALIAS_ON);
+                Color base = getBackground();
+                if (getModel().isPressed()) base = base.darker();
+                else if (getModel().isRollover()) base = base.brighter();
+                g2.setPaint(new GradientPaint(
+                    0, 0, base, getWidth(), getHeight(), base.darker()
+                ));
+                g2.fillRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 24, 24);
+
+                // Keep a visible focus outline for keyboard navigation.
+                if (isFocusOwner()) {
+                    g2.setColor(new Color(25, 30, 55));
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawRoundRect(5, 5, getWidth() - 11,
+                                     getHeight() - 11, 20, 20);
+                }
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         b.addActionListener(e -> action.run());
+
+        // Let the custom background show through the standard button label.
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setBorderPainted(false);
+        b.setFocusPainted(false);
+        b.setRolloverEnabled(true);
+        b.setFont(new Font("SansSerif", Font.BOLD, 17));
+        b.setForeground(new Color(24, 29, 48));
+        b.setBorder(BorderFactory.createEmptyBorder(20, 18, 20, 18));
+        b.setPreferredSize(new Dimension(280, 104));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return b;
     }
+
     private void page(String heading, JButton... buttons) {
-        JPanel p = new JPanel(new GridLayout(0, 1, 8, 8));
-        p.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
-        JLabel title = new JLabel(heading, SwingConstants.CENTER);
-        title.setFont(new Font("SansSerif", Font.BOLD, 20));
-        p.add(title);
-        for (JButton b : buttons) p.add(b);
+        // Rainbow palette: dark labels stay readable on the bright cards.
+        Color[] rainbow = {
+            new Color(255, 139, 157), // Red
+            new Color(255, 183, 105), // Orange
+            new Color(255, 222, 104), // Yellow
+            new Color(120, 222, 170), // Green
+            new Color(116, 190, 255), // Blue
+            new Color(167, 158, 255), // Indigo
+            new Color(221, 155, 251)  // Violet
+        };
+        Color background = new Color(19, 23, 40);
+        Color muted = new Color(177, 187, 212);
+        JPanel p = new JPanel(new BorderLayout(0, 24));
+        p.setBackground(background);
+        p.setBorder(BorderFactory.createEmptyBorder(28, 30, 22, 30));
+
+        // A full rainbow stripe gives every screen the same visual identity.
+        JPanel stripe = new JPanel(new GridLayout(1, rainbow.length));
+        stripe.setPreferredSize(new Dimension(1, 7));
+        for (Color color : rainbow) {
+            JPanel segment = new JPanel();
+            segment.setBackground(color);
+            stripe.add(segment);
+        }
+        JPanel headings = new JPanel();
+        headings.setLayout(new BoxLayout(headings, BoxLayout.Y_AXIS));
+        headings.setOpaque(false);
+        headings.setBorder(BorderFactory.createEmptyBorder(20, 0, 4, 0));
+
+        JLabel brand = new JLabel("MINI BLACKBOARD / YOUR LEARNING SPACE");
+        brand.setFont(new Font("SansSerif", Font.BOLD, 11));
+        brand.setForeground(rainbow[6]);
+        JLabel title = new JLabel(heading);
+        title.setFont(new Font("SansSerif", Font.BOLD, 30));
+        title.setForeground(Color.WHITE);
+        JLabel subtitle = new JLabel("Choose your next step. Make it a bright one.");
+        subtitle.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        subtitle.setForeground(muted);
+        headings.add(brand);
+        headings.add(Box.createVerticalStrut(10));
+        headings.add(title);
+        headings.add(Box.createVerticalStrut(8));
+        headings.add(subtitle);
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.add(stripe, BorderLayout.NORTH);
+        header.add(headings, BorderLayout.CENTER);
+        p.add(header, BorderLayout.NORTH);
+
+        // Two columns replace the long list; original button order is preserved.
+        JPanel cards = new JPanel(new GridLayout(0, 2, 16, 16));
+        cards.setOpaque(false);
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setBackground(rainbow[i % rainbow.length]);
+            cards.add(buttons[i]);
+        }
+        JPanel cardArea = new JPanel(new BorderLayout());
+        cardArea.setOpaque(false);
+        cardArea.add(cards, BorderLayout.NORTH);
+
+        // Scrolling keeps actions reachable if the window is made smaller.
+        JScrollPane scroll = new JScrollPane(cardArea);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.setHorizontalScrollBarPolicy(
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        );
+        JPanel dashboard = new JPanel(new BorderLayout(0, 14));
+        dashboard.setOpaque(false);
+        JLabel section = new JLabel("YOUR DASHBOARD");
+        section.setFont(new Font("SansSerif", Font.BOLD, 11));
+        section.setForeground(muted);
+        dashboard.add(section, BorderLayout.NORTH);
+        dashboard.add(scroll, BorderLayout.CENTER);
+        p.add(dashboard, BorderLayout.CENTER);
+
+        JLabel footer = new JLabel("Learn. Create. Achieve. / Mini Blackboard");
+        footer.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        footer.setForeground(muted);
+        p.add(footer, BorderLayout.SOUTH);
+
         frame.setContentPane(p);
         frame.revalidate();
         frame.repaint();
@@ -297,7 +414,9 @@ private boolean requireTeacher() {
         studentDashboard(name);
     }
     public void showExam() {
-        frame.setSize(520, 460);
+        // Wider frame fits two columns of rainbow dashboard cards.
+        frame.setSize(820, 700);
+        frame.setMinimumSize(new Dimension(680, 580));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 
@@ -365,5 +484,5 @@ private boolean requireTeacher() {
             );
         }
     }
+    
 }
-
