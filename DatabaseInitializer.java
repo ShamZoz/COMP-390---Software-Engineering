@@ -11,7 +11,6 @@ public class DatabaseInitializer {
         
         try (Connection conn = database.getConnection(); Statement st = conn.createStatement()) {
 
-
             // Create a student table
             st.execute("""
                 CREATE TABLE IF NOT EXISTS students (
@@ -24,40 +23,42 @@ public class DatabaseInitializer {
             // Create a course table
             st.execute("""
                 CREATE TABLE IF NOT EXISTS courses (
-                    course_id TEXT PRIMARY KEY NOT NULL UNIQUE,
-                    course_title TEXT NOT NULL,
+                    course_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+                    course_title TEXT NOT NULL UNIQUE
                 )
             """);
 
             // Create an assignment table
             st.execute("""
                 CREATE TABLE IF NOT EXISTS assignments (
-                    assignment_id TEXT PRIMARY KEY AUTOINCREMENT,
-                    assignment_title TEXT NOT NULL,
+                    assignment_id TEXT PRIMARY KEY NOT NULL UNIQUE,
+                    assignment_title TEXT NOT NULL UNIQUE
                 )
             """);
 
             // Create an assignment-score table
-            st.execute("""
-                CREATE TABLE IF NOT EXISTS assignmentScore (
-                    score_id INTEGER NOT NULL,
-                    FOREIGN KEY(student_id) REFERENCES students(student_id),
-                    FOREIGN KEY(course_id) REFERENCES courses(course_id),
-                    FOREIGN KEY(assignments_id) REFERENCES assignments(assignment_id)
-                )
-            """);
+            //st.execute("""
+            //    CREATE TABLE IF NOT EXISTS assignmentScore (
+            //        score INTEGER NOT NULL,
+            //        PRIMARY KEY(student_id, course_id, assignment_id),
+            //        FOREIGN KEY(student_id) REFERENCES students(student_id),
+            //        FOREIGN KEY(course_id) REFERENCES courses(course_id),
+            //        FOREIGN KEY(assignment_id) REFERENCES assignments(assignment_id)
+            //    )
+            //""");
 
             // Fill example data into student table
             st.execute("""
                 INSERT OR IGNORE INTO students(student_id, student_name, email) VALUES
                 (1,'Cool Kid','coolkid@bridgew.edu'),
-                (2,'Joe','Cool','joecool@msn.com'),
+                (2, 'Joe Cool', 'joecool@msn.com')
             """);
+
 
             // Fill example data into course table
             st.execute("""
                 INSERT OR IGNORE INTO courses(course_id, course_title) VALUES
-                ('COMP152','Comp Sci 2: The Epic Sequel')
+                (1, 'Java or something')
             """);
 
             // Fill example data into assignment table
@@ -67,11 +68,11 @@ public class DatabaseInitializer {
             """);
 
             // Fill example data into assignmentScore table
-            st.execute("""
-                INSERT OR IGNORE INTO assignmentScore(student_id, course_id, assignment_id) VALUES
-                (1, 'COMP151', '76')
-                (2, 'COMP151', '88')
-            """);
+            //st.execute("""
+            //    INSERT OR IGNORE INTO assignmentScore(score, student_id, course_id, assignment_id) VALUES
+            //    (76, 1, 1, 'Test 1'),
+            //    (89, 2, 1, 'Test 1')
+            //""");
         }
     }
 }

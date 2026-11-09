@@ -13,7 +13,7 @@ public class Database {
     public Database(String jdbcUrl) { this.jdbcUrl = jdbcUrl; }
 
     // Establish the connection by defining jdbcUrl
-    public static Database production() { return new Database("jdbc:sqlite:mini_blackboard.db"); }
+    public static Database production() { return new Database("jdbc:sqlite:blackboard.db"); }
     public Connection getConnection() throws SQLException {
         Connection c = DriverManager.getConnection(jdbcUrl);
         c.createStatement().execute("PRAGMA foreign_keys = ON");
