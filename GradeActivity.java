@@ -1,8 +1,8 @@
-import javax.swing.*;
 import java.awt.*;
+import java.io.*;
 import java.util.*;
 import java.util.List;
-import java.io.*;
+import javax.swing.*;
 
 // Main class for the grade activity
 public class GradeActivity {
@@ -11,8 +11,10 @@ public class GradeActivity {
     private final List<Course> courses = new ArrayList<>();
     private final List<String> students = new ArrayList<>();
     private final Map<String, Double> grades = new LinkedHashMap<>();
-// Inner classes for Course, Test, and Question
 
+
+    // Inner classes for Course, Test, and Question
+    
     static class Course implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
         String name;
@@ -307,9 +309,6 @@ private boolean requireTeacher() {
         frame.setVisible(true);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
-    }
 
     // Mini Blackboard Data to keep and store all information
     private static final String DATA_FILE = "blackboard.dat";
@@ -363,6 +362,24 @@ private boolean requireTeacher() {
             JOptionPane.showMessageDialog(
                 frame, "Error loading data: " + e.getMessage()
             );
+        }
+    }
+
+    // Run the program
+    public static void main(String[] args) {
+
+        // Try to start the program / database
+        try {
+        Database db = Database.production();
+        DatabaseInitializer.initialize(db);
+        SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
+
+        // Error catching if unable to load (The message is printed to the user in a window. The database
+        // needs this error catching to work)
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
