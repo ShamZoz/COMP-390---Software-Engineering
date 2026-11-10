@@ -486,4 +486,3 @@ private boolean requireTeacher() {
     }
     
 }
-
