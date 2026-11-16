@@ -1,47 +1,68 @@
-import javax.swing.*;                       
-import java.awt.*;                          
-import java.lang.reflect.Field;             
-import java.util.*;                         
-import java.util.List;                      
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.List;
 
 
 public class SearchGradeActivity extends GradeActivity {
 
     // References to the parent's private data, filled in when the app starts
-    private JFrame frame;                   
+    private JFrame frame;
     private List<String> students;          // all student names (private in GradeActivity)
     private List<Course> courses;           // all classes, each holding its enrolled students and tests
     private Map<String, Double> grades;     // grade records with keys like "Mailcky | COMP 351 | Test 1"
 
-    // Overrides the parent's startup method so we can add our menu after the window is created
+    // The Search menu bar, built once and attached only on the dashboards
+    private JMenuBar searchBar;
+
+    // Overrides the parent's startup method to read the parent's private data.
+    // The Search menu is NOT added here, so the home screen stays clean.
     @Override
     public void showExam() {
         try {
-            frame = field("frame");         
-            students = field("students");   
-            courses = field("courses");     
-            grades = field("grades");       
+            frame = field("frame");
+            students = field("students");
+            courses = field("courses");
+            grades = field("grades");
         } catch (Exception e) {
-            throw new RuntimeException("Could not read GradeActivity data", e);  
+            throw new RuntimeException("Could not read GradeActivity data", e);
         }
 
-        super.showExam();                   
+        super.showExam();
+    }
 
-        JMenuBar bar = new JMenuBar();      // create an empty menu bar
-        JMenu menu = new JMenu("Search");   // create a menu titled "Search"
-        JMenuItem open = new JMenuItem("Find students, classes, or tests");  // the clickable entry in that menu
-        open.addActionListener(e -> openSearch());  // when clicked, open the search window
-        menu.add(open);                     // put the item inside the menu
-        bar.add(menu);                      // put the menu inside the bar
-        frame.setJMenuBar(bar);             // attach the bar to the window; it stays visible on every page
-        frame.revalidate();                 // tell Swing to redraw the layout with the new bar
+    // Runs every time a page is shown. The Search menu appears only on the
+    // Teacher Dashboard and Student dashboards, and is removed on every other page
+    // (home screen, logout, and so on).
+    @Override
+    protected void page(String heading, JButton... buttons) {
+        super.page(heading, buttons);
+
+        boolean onDashboard = heading.equals("Teacher Dashboard") || heading.startsWith("Student: ");
+        frame.setJMenuBar(onDashboard ? getSearchBar() : null);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    // Builds the Search menu bar the first time it is needed, then reuses it
+    private JMenuBar getSearchBar() {
+        if (searchBar == null) {
+            searchBar = new JMenuBar();         // create an empty menu bar
+            JMenu menu = new JMenu("Search");   // create a menu titled "Search"
+            JMenuItem open = new JMenuItem("Find students, classes, or tests");  // the clickable entry in that menu
+            open.addActionListener(e -> openSearch());  // when clicked, open the search window
+            menu.add(open);                     // put the item inside the menu
+            searchBar.add(menu);                // put the menu inside the bar
+        }
+        return searchBar;
     }
 
     // Helper that reads one private field from the parent class using reflection
-    @SuppressWarnings("unchecked")          
+    @SuppressWarnings("unchecked")
     private <T> T field(String name) throws Exception {
         Field f = GradeActivity.class.getDeclaredField(name);  // find the field by its name in GradeActivity
-        f.setAccessible(true);              
+        f.setAccessible(true);
         return (T) f.get(this);             // read its value from this object and cast it to the needed type
     }
 
@@ -75,7 +96,7 @@ public class SearchGradeActivity extends GradeActivity {
 
     // Builds the text of the search results for the given query
     private String search(String query) {
-        String q = query.trim().toLowerCase();                
+        String q = query.trim().toLowerCase();
         if (q.isEmpty()) return "Type part of a student name, class name, or test name.";  // nothing typed yet
 
         StringBuilder out = new StringBuilder();              // collects all result lines into one string
@@ -83,8 +104,8 @@ public class SearchGradeActivity extends GradeActivity {
 
         // ---- STUDENT SEARCH ----
         for (String student : students) {                     // check every saved student name
-            if (!student.toLowerCase().contains(q)) continue; 
-            any = true;                                       
+            if (!student.toLowerCase().contains(q)) continue;
+            any = true;
             out.append("STUDENT: ").append(student).append("\n");  // printing the student's name as a heading
             List<String> classNames = new ArrayList<>();      // will hold the names of the classes they're in
             for (Course c : courses)                          // look at every class
@@ -93,13 +114,13 @@ public class SearchGradeActivity extends GradeActivity {
                .append(classNames.isEmpty() ? "none" : String.join(", ", classNames))  // list them or say "none"
                .append("\n");
             for (Map.Entry<String, Double> g : grades.entrySet()) {  // look through all saved grades
-                String[] parts = g.getKey().split(" \\| ");   
+                String[] parts = g.getKey().split(" \\| ");
                 if (parts.length == 3 && parts[0].equals(student))  // keep only grades that belong to this student
                     out.append("  ").append(parts[2])        // show the test name
                        .append(" (").append(parts[1]).append("): ")  // show the class name in brackets
                        .append(fmt(g.getValue())).append("\n");     // show the score and letter grade
             }
-            out.append("\n");                                 
+            out.append("\n");
         }
 
         // ---- CLASS SEARCH ----
@@ -110,11 +131,11 @@ public class SearchGradeActivity extends GradeActivity {
             out.append("  Students: ")                        // label for enrolled students
                .append(c.enrolled.isEmpty() ? "none" : String.join(", ", c.enrolled))  // list them or say "none"
                .append("\n");
-            List<String> testNames = new ArrayList<>();       
+            List<String> testNames = new ArrayList<>();
             for (Test t : c.tests) testNames.add(t.name);     // collects each test name in the class
             out.append("  Tests: ")                           // label for the test list
                .append(testNames.isEmpty() ? "none" : String.join(", ", testNames))  // list them or say "none"
-               .append("\n\n");                               
+               .append("\n\n");
         }
 
         // ---- TEST SEARCH ----
@@ -127,15 +148,15 @@ public class SearchGradeActivity extends GradeActivity {
                    .append(", ").append(t.questions.size())   // number of questions it has
                    .append(" questions)\n");
                 for (Map.Entry<String, Double> g : grades.entrySet()) {  // look through all saved grades
-                    String[] parts = g.getKey().split(" \\| ");  
-                    if (parts.length == 3 && parts[1].equals(c.name) && parts[2].equals(t.name))  // match  test exactly
+                    String[] parts = g.getKey().split(" \\| ");
+                    if (parts.length == 3 && parts[1].equals(c.name) && parts[2].equals(t.name))  // match test exactly
                         out.append("  ").append(parts[0])    // show the student who took it
                            .append(": ").append(fmt(g.getValue())).append("\n");  // show their score and grade
                 }
-                out.append("\n");                             
+                out.append("\n");
             }
 
-        return any ? out.toString()                           
+        return any ? out.toString()
                    : "No students, classes, or tests match \"" + query.trim() + "\".";  // otherwise a no-match message
     }
 
@@ -145,7 +166,7 @@ public class SearchGradeActivity extends GradeActivity {
         return String.format("%.1f%% (%c)", score, getGrade());  // format the number and call getGrade() for the letter
     }
 
-    // Starting the app using this subclass so the Search menu appears
+    // Starting the app using this subclass so the Search menu appears on the dashboards
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new SearchGradeActivity().showExam());  // create and show the window on Swing's thread
     }

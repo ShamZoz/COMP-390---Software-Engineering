@@ -47,7 +47,7 @@ public class GradeActivity {
         b.addActionListener(e -> action.run());
         return b;
     }
-    private void page(String heading, JButton... buttons) {
+    protected  void page(String heading, JButton... buttons) {
         JPanel p = new JPanel(new GridLayout(0, 1, 8, 8));
         p.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         JLabel title = new JLabel(heading, SwingConstants.CENTER);
