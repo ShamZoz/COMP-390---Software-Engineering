@@ -1,8 +1,8 @@
+import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.io.*;
-import javax.swing.*;
 
 // Main class for the grade activity
 public class GradeActivity {
@@ -64,7 +64,7 @@ public class GradeActivity {
         frame.revalidate();
         frame.repaint();
     }
-    private String ask(String message) {
+    public String ask(String message) {
         String s = JOptionPane.showInputDialog(frame, message);
         return s == null || s.trim().isEmpty() ? null : s.trim();
     }
@@ -367,21 +367,3 @@ private boolean requireTeacher() {
     }
 }
 
-    // Message feature IN PROGRESS
-    // References used: 
-    // https://www.geeksforgeeks.org/java/send-email-using-java-program/
-    // https://mailtrap.io/blog/java-send-email/
-    // https://stackoverflow.com/questions/884943/how-do-i-send-an-e-mail-in-java
-    // https://www.geeksforgeeks.org/java/sending-email-java-ssltls-authentication/
-    public void sendEmail(){
-        String sender = ask("Sender address:");
-        String host = "localhost";
-        String reciever = ask("Recipiant address:");
-
-    }
-
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
-    }
-}
