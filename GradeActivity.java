@@ -264,13 +264,40 @@ private boolean requireTeacher() {
     private void addStudent() {
      if (!requireTeacher()) return;
         String name = ask("Student name:");
-        if (name != null && !students.contains(name)) {
+        String email = ask("Student email:");
+        if (name != null && !students.contains(name) && email != null) {
+
+            // Connect to database
+            //try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
+            //    st.execute("""
+            //    INSERT OR IGNORE INTO students(student_id, student_name, email) VALUES
+            //        ('', name, email)
+            //    """);
+            //} catch (Exception e) {
+            //e.printStackTrace();
+            //JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to update database", JOptionPane.ERROR_MESSAGE);
+           // }
+
+
             students.add(name);
             saveData();
             message("Student added!");
         }
+
+        // Error handeling. If unable to add student, say why
+        else if (name == null){
+            message("Unable to add student: Nothing entered for name!");
+        }
+        else if (students.contains(name)) {
+            message("Unable to add student: Student already exists");
+        }
+        else if (email == null){
+            message("Unable to add student: Nothing entered for email!");
+        }
+
         teacher();
     }
+    
     private void enroll() {
      if (!requireTeacher()) return;
         String name = choose("Select student:", students);
