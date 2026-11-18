@@ -13,7 +13,7 @@ public class GradeActivity {
     private final List<Course> courses = new ArrayList<>();
     private final List<String> students = new ArrayList<>();
     private final Map<String, Double> grades = new LinkedHashMap<>();
-    private final Database db;
+    public static Database db = new Database("jdbc:sqlite:blackboard.db");
 
 
 // Inner classes for Course, Test, and Question
@@ -44,8 +44,30 @@ public class GradeActivity {
 
 // Methods for GradeActivity such as setting score, getting score, and determining letter grade
     public GradeActivity() {
-         score = 0.0; 
-        
+        score = 0.0; 
+
+        // Try to start the program / database
+        try {
+        db = Database.production();
+        DatabaseInitializer.initialize(db);
+
+
+        Connection conn = db.getConnection();
+
+        System.out.println("-----");
+        String dbName = conn.getCatalog();
+        System.out.println("Connected to database: " + dbName);
+        System.out.println("-----");
+
+
+        // Error catching if unable to load (The message is printed to the user in a window. The database
+        // needs this error catching to work)
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
+        }
+
         }
 
         
@@ -283,7 +305,7 @@ private boolean requireTeacher() {
             // Source: https://www.w3schools.com/sql/sql_insert.asp
 
             // Take the user input and turn it into a string containing the sql Command
-            String sqlCommand = "INSERT INTO courses (course_title) VALUES (" + name + ")";
+            String sqlCommand = "INSERT INTO courses (course_id, course_title) VALUES (NULL," + name + ")";
 
             // Try to add it
             try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
@@ -310,10 +332,12 @@ private boolean requireTeacher() {
 
     private void addStudent() {
      if (!requireTeacher()) return;
+
+
         String name = ask("Student name:");
 
         // Test message
-        System.out.println("aa");
+        //System.out.println("aa");
         String email = ask("Student email:");
         if (name != null && !students.contains(name) && email != null) {
 
@@ -322,11 +346,21 @@ private boolean requireTeacher() {
             // Source: https://www.w3schools.com/sql/sql_insert.asp
 
             // Take the user input and turn it into a string containing the sql Command
-            String sqlCommand = "INSERT INTO students (student_id, email) VALUES (" + name + ", " + email + ")";
+            String sqlCommand = "INSERT INTO students (student_id, student_name, email) VALUES (NULL," + name + "," + email + ")";
+            //System.out.println(sqlCommand);
 
             // Try to add it
             try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
+
+                // Test if I'm connected to the database --> I used Google for this
+                System.out.println("-----");
+                String dbName = conn.getCatalog();
+                System.out.println("Connected to database: " + dbName);
+                System.out.println("-----");
+
+
                 st.execute(sqlCommand);
+
             } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to update database", JOptionPane.ERROR_MESSAGE);
@@ -570,20 +604,8 @@ private boolean requireTeacher() {
 
     // Run the program
     public static void main(String[] args) {
-
-        // Try to start the program / database
-        try {
-        Database db = Database.production();
-        DatabaseInitializer.initialize(db);
         SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
 
-        // Error catching if unable to load (The message is printed to the user in a window. The database
-        // needs this error catching to work)
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }
 
