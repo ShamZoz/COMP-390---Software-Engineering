@@ -23,7 +23,7 @@ public class DatabaseInitializer {
             // Create a course table
             st.execute("""
                 CREATE TABLE IF NOT EXISTS courses (
-                    course_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+                    course_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     course_title TEXT NOT NULL UNIQUE
                 )
             """);

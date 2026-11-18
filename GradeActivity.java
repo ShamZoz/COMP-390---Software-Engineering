@@ -1,5 +1,7 @@
 import java.awt.*;
 import java.io.*;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
@@ -11,10 +13,10 @@ public class GradeActivity {
     private final List<Course> courses = new ArrayList<>();
     private final List<String> students = new ArrayList<>();
     private final Map<String, Double> grades = new LinkedHashMap<>();
+    private final Database db;
 
 
-    // Inner classes for Course, Test, and Question
-    
+// Inner classes for Course, Test, and Question
     static class Course implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
         String name;
@@ -38,8 +40,15 @@ public class GradeActivity {
             this.prompt = prompt; this.a = a; this.b = b; this.correct = correct;
         }
     }
+
+
 // Methods for GradeActivity such as setting score, getting score, and determining letter grade
-    public GradeActivity() { score = 0.0; }
+    public GradeActivity() {
+         score = 0.0; 
+        
+        }
+
+        
     public void setScore(double s) { score = s; }
     public double getScore() { return score; }
     public char getGrade() {
@@ -49,7 +58,9 @@ public class GradeActivity {
         else if (score >= 60) return 'D';
         else return 'F';
     }
-// GUI methods for the application such as creating buttons
+
+
+// GUI methods for creating buttons
     private JButton button(String label, Runnable action) {
         JButton b = new JButton(label) {
 
@@ -96,6 +107,7 @@ public class GradeActivity {
     }
 
 
+// Page design
     private void page(String heading, JButton... buttons) {
         // Rainbow palette: dark labels stay readable on the bright cards.
         Color[] rainbow = {
@@ -186,10 +198,14 @@ public class GradeActivity {
         frame.repaint();
     }
 
+
+// Prompt the user for a message
     public String ask(String message) {
         String s = JOptionPane.showInputDialog(frame, message);
         return s == null || s.trim().isEmpty() ? null : s.trim();
     }
+
+// Prompt the user for choices from a list
     private <T> T choose(String message, List<T> items) {
         if (items.isEmpty()) {
             JOptionPane.showMessageDialog(frame, "Nothing available yet.");
@@ -201,8 +217,9 @@ public class GradeActivity {
         return selected;
     }
     private void message(String text) { JOptionPane.showMessageDialog(frame, text); }
+
+
 // Main GUI methods for the application such as home, teacher, student, and their respective functionalities
-    
     private void home() {
     page("Mini Blackboard",
         button("Teacher Dashboard", this::teacherLogin),
@@ -210,7 +227,8 @@ public class GradeActivity {
         button("Exit", frame::dispose)
     );
 }
-    
+
+// Teacher methods
     private void teacher() {
 
     if (!teacherAuthenticated) {
@@ -250,38 +268,73 @@ private boolean requireTeacher() {
     }
     return true;
 }
+
+///////////////////////////////////
+
     private void addClass() {
         if (!requireTeacher()) return;
         String name = ask("Class name (e.g. COMP 101):");
         if (name != null) {
-            courses.add(new Course(name));
-            saveData();
-            message("Class created!");
+            //courses.add(new Course(name));
+            //saveData();
+            //message("Class created!");
+
+            // Insert data into database
+            // Source: https://www.w3schools.com/sql/sql_insert.asp
+
+            // Take the user input and turn it into a string containing the sql Command
+            String sqlCommand = "INSERT INTO courses (course_title) VALUES (" + name + ")";
+
+            // Try to add it
+            try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
+                st.execute(sqlCommand);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to update database", JOptionPane.ERROR_MESSAGE);
+            }
+
         }
-        teacher();
+
+        // Specific error handeling
+        else if (name == null){
+            message("Unable to add course: Nothing entered for name!");
+        }
+
+
+        //teacher();
+        
+
     }
+
+///////////////////////////////////
 
     private void addStudent() {
      if (!requireTeacher()) return;
         String name = ask("Student name:");
+
+        // Test message
+        System.out.println("aa");
         String email = ask("Student email:");
         if (name != null && !students.contains(name) && email != null) {
 
-            // Connect to database
-            //try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
-            //    st.execute("""
-            //    INSERT OR IGNORE INTO students(student_id, student_name, email) VALUES
-            //        ('', name, email)
-            //    """);
-            //} catch (Exception e) {
-            //e.printStackTrace();
-            //JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to update database", JOptionPane.ERROR_MESSAGE);
-           // }
 
+            // Insert data into database
+            // Source: https://www.w3schools.com/sql/sql_insert.asp
 
-            students.add(name);
-            saveData();
-            message("Student added!");
+            // Take the user input and turn it into a string containing the sql Command
+            String sqlCommand = "INSERT INTO students (student_id, email) VALUES (" + name + ", " + email + ")";
+
+            // Try to add it
+            try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
+                st.execute(sqlCommand);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to update database", JOptionPane.ERROR_MESSAGE);
+            }
+
+            //students.add(name);
+            //saveData();
+            //message("Student added!");
         }
 
         // Error handeling. If unable to add student, say why
@@ -295,9 +348,11 @@ private boolean requireTeacher() {
             message("Unable to add student: Nothing entered for email!");
         }
 
-        teacher();
+        //teacher();
     }
-    
+
+///////////////////////////////////
+
     private void enroll() {
      if (!requireTeacher()) return;
         String name = choose("Select student:", students);
@@ -455,6 +510,7 @@ private boolean requireTeacher() {
         home();
         frame.setVisible(true);
     }
+
 
 
     // Mini Blackboard Data to keep and store all information

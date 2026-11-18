@@ -5,7 +5,7 @@ import java.util.List;
 import java.io.*;
 
 // Main class for the grade activity
-public class GradeActivity {
+public class GradeActivityStyle {
     private double score;
     private final JFrame frame = new JFrame("Mini Blackboard");
     private final List<Course> courses = new ArrayList<>();
