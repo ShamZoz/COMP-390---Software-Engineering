@@ -1,7 +1,7 @@
 import java.awt.*;
 import java.io.*;
 import java.sql.Connection;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
@@ -46,24 +46,13 @@ public class GradeActivity {
     public GradeActivity() {
         score = 0.0; 
 
-
-        // Try to start the program / database
+        // Try to start the database
         try {
         db = Database.production();
         DatabaseInitializer.initialize(db);
 
-
-        Connection conn = db.getConnection();
-
-        System.out.println("-----");
-        String dbName = conn.getCatalog();
-        System.out.println("Connected to database: " + dbName);
-        System.out.println("-----");
-
-
         // Error catching if unable to load (The message is printed to the user in a window. The database
         // needs this error catching to work)
-
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
@@ -298,19 +287,38 @@ private boolean requireTeacher() {
         if (!requireTeacher()) return;
         String name = ask("Class name (e.g. COMP 101):");
         if (name != null) {
-            //courses.add(new Course(name));
-            //saveData();
-            //message("Class created!");
 
-            // Insert data into database
-            // Source: https://www.w3schools.com/sql/sql_insert.asp
+            // Insert data into database by turning the user input into an sql command
+            // USED SOURCES:
+            // https://www.w3schools.com/sql/sql_insert.asp   
+            // https://www.geeksforgeeks.org/java/how-to-use-preparedstatement-in-java/ 
 
-            // Take the user input and turn it into a string containing the sql Command
-            String sqlCommand = "INSERT INTO courses (course_id, course_title) VALUES (NULL," + name + ")";
+            // Create a query with ?. These ? serve as a way to insert data
+            String query = "INSERT INTO courses (course_id, course_title) VALUES (NULL,?)";
 
-            // Try to add it
-            try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
-                st.execute(sqlCommand);
+            // Establish a connection
+            try (Connection conn = db.getConnection();) {
+
+                // Create PreparedStatement. 
+                // A preparedStatement allows for the query to be modified while
+                // a regular statement lacks the .setString method
+                PreparedStatement myStmt = conn.prepareStatement(query);
+
+                // Set the parameters
+                myStmt.setString(1, name);
+
+                // Execute update
+                // This was erroring for a long time, but it turns out executeQuery doesn't
+                // work for updates
+                myStmt.executeUpdate();
+
+                // Close the statement
+                myStmt.close();
+
+                // Print Success
+                JOptionPane.showMessageDialog(frame, "Successfully updated data!");
+
+            // Catch the error
             } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to update database", JOptionPane.ERROR_MESSAGE);
@@ -331,45 +339,55 @@ private boolean requireTeacher() {
 
 ///////////////////////////////////
 
+// This method adds a student to the database
     private void addStudent() {
      if (!requireTeacher()) return;
 
-
+        // Ask the user for the student's name and email
         String name = ask("Student name:");
-
-        // Test message
-        //System.out.println("aa");
         String email = ask("Student email:");
+
+        // If there is valid information...
         if (name != null && !students.contains(name) && email != null) {
 
 
-            // Insert data into database
-            // Source: https://www.w3schools.com/sql/sql_insert.asp
+            // Insert data into database by turning the user input into an sql command
+            // USED SOURCES:
+            // https://www.w3schools.com/sql/sql_insert.asp   
+            // https://www.geeksforgeeks.org/java/how-to-use-preparedstatement-in-java/ 
 
-            // Take the user input and turn it into a string containing the sql Command
-            String sqlCommand = "INSERT INTO students (student_id, student_name, email) VALUES (NULL," + name + "," + email + ")";
-            //System.out.println(sqlCommand);
+            // Create a query with ?. These ? serve as a way to insert data
+            String query = "INSERT INTO students (student_id, student_name, email) VALUES (NULL,?,?)";
 
-            // Try to add it
-            try (Connection conn = db.getConnection(); Statement st = conn.createStatement()) {
+            // Establish a connection
+            try (Connection conn = db.getConnection();) {
 
-                // Test if I'm connected to the database --> I used Google for this
-                System.out.println("-----");
-                String dbName = conn.getCatalog();
-                System.out.println("Connected to database: " + dbName);
-                System.out.println("-----");
+                // Create PreparedStatement. 
+                // A preparedStatement allows for the query to be modified while
+                // a regular statement lacks the .setString method
+                PreparedStatement myStmt = conn.prepareStatement(query);
 
+                // Set the parameters
+                myStmt.setString(1, name);
+                myStmt.setString(2, email);
 
-                st.execute(sqlCommand);
+                // Execute update
+                // This was erroring for a long time, but it turns out executeQuery doesn't
+                // work for updates
+                myStmt.executeUpdate();
 
+                // Close the statement
+                myStmt.close();
+
+                // Print Success
+                JOptionPane.showMessageDialog(frame, "Successfully updated data!");
+
+            // Catch the error
             } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to update database", JOptionPane.ERROR_MESSAGE);
             }
 
-            //students.add(name);
-            //saveData();
-            //message("Student added!");
         }
 
         // Error handeling. If unable to add student, say why

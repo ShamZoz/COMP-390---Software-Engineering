@@ -7,8 +7,6 @@ import java.sql.Statement;
 
 public class DatabaseInitializer {
     public static void initialize(Database database) throws SQLException {
-
-        
         try (Connection conn = database.getConnection(); Statement st = conn.createStatement()) {
 
             // Create a student table
