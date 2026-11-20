@@ -11,7 +11,9 @@ public class GradeActivity {
     private double score;
     private final JFrame frame = new JFrame("Mini Blackboard");
     private final List<Course> courses = new ArrayList<>();
+
     private final List<String> students = new ArrayList<>();
+
     private final Map<String, Double> grades = new LinkedHashMap<>();
     public static Database db = new Database("jdbc:sqlite:blackboard.db");
 
@@ -337,7 +339,6 @@ private boolean requireTeacher() {
 
     }
 
-///////////////////////////////////
 
 // This method adds a student to the database
     private void addStudent() {
@@ -404,10 +405,26 @@ private boolean requireTeacher() {
         //teacher();
     }
 
-///////////////////////////////////
+//////////////////////////////
 
     private void enroll() {
      if (!requireTeacher()) return;
+
+        // Fill students with database information
+        String query = "SELECT student_name FROM students";
+
+        // Connect to database
+        try (Connection conn = db.getConnection();) {
+
+            // Fill the list with student data
+            
+
+        } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to open database", JOptionPane.ERROR_MESSAGE);
+        }
+
+
         String name = choose("Select student:", students);
         if (name != null) {
             Course c = choose("Select class:", courses);
