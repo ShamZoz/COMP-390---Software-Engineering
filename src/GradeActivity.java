@@ -2,6 +2,7 @@ import java.awt.*;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
@@ -410,21 +411,53 @@ private boolean requireTeacher() {
     private void enroll() {
      if (!requireTeacher()) return;
 
-        // Fill students with database information
-        String query = "SELECT student_name FROM students";
+        // FILL STUDENTS TABLE WITH DATABASE
+        // SOURCE: https://stackoverflow.com/questions/54599010/storing-one-column-of-a-database-table-into-an-arraylist
+        // Additional Source: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html
+
+        // Select from the student table
+        String query = "SELECT * FROM students";
 
         // Connect to database
         try (Connection conn = db.getConnection();) {
 
-            // Fill the list with student data
-            
+            // Apply query with prepared statement
+            PreparedStatement myStmt = conn.prepareStatement(query);
+
+            // Create a table of the returned data (result set)
+            ResultSet myRst = myStmt.executeQuery();
+
+            // Add students while there are still students to add
+            while (myRst.next()) {
+
+                // Add to student list each name IF IT ISN'T ALREADY THERE! Otherwise, continue
+                if (!students.contains(myRst.getString("student_name"))){
+                    students.add(myRst.getString("student_name"));
+                }
+            }   
 
         } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to open database", JOptionPane.ERROR_MESSAGE);
         }
 
+        // FILL COURSES TABLE WITH DATABASE! THIS IS DONE EXACTLY LIKE IT IS IN STUDENTS
+        String query2 = "SELECT * FROM courses";
+        try (Connection conn2 = db.getConnection();) {
+            PreparedStatement myStmt2 = conn2.prepareStatement(query2);
+            ResultSet myRst2 = myStmt2.executeQuery();
+            while (myRst2.next()) {
+                if (!courses.contains(myRst2.getString("course_title"))){
+                    students.add(myRst2.getString("course_title"));
+                }
+            }
+        } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to open database", JOptionPane.ERROR_MESSAGE);
+        }
 
+
+        // The rest of the method and adding the student happens here
         String name = choose("Select student:", students);
         if (name != null) {
             Course c = choose("Select class:", courses);
@@ -436,6 +469,7 @@ private boolean requireTeacher() {
         }
         teacher();
     }
+    
     private void createTest() {
      if (!requireTeacher()) return;
         Course c = choose("Choose class:", courses);
