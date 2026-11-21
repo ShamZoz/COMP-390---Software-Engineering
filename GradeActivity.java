@@ -53,7 +53,7 @@ public class GradeActivity {
         b.addActionListener(e -> action.run());
         return b;
     }
-    private void page(String heading, JButton... buttons) {
+    protected  void page(String heading, JButton... buttons) {
         JPanel p = new JPanel(new GridLayout(0, 1, 8, 8));
         p.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         JLabel title = new JLabel(heading, SwingConstants.CENTER);
@@ -312,7 +312,7 @@ private boolean requireTeacher() {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
+        SwingUtilities.invokeLater(() -> new HelpGuideGradeActivity().showExam());
     }
 
     // Mini Blackboard Data to keep and store all information
@@ -371,5 +371,7 @@ private boolean requireTeacher() {
     }
     protected JFrame getFrame() { return frame; }
     protected List<String> getStudents() { return students; }
+    protected List<Course> getCourses() { return courses; }
+    protected Map<String, Double> getGrades() { return grades; }
 }
 
