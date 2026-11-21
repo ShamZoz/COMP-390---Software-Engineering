@@ -438,8 +438,8 @@ private boolean requireTeacher() {
 
             ResultSet myRst2 = myStmt2.executeQuery();
 
-            // Add students while there are still students to add
-            while (myRst.next()) {
+            // Add students/courses while there are still students/courses to add to the display
+            while (myRst.next() && myRst2.next()) {
 
                 // Add to student list each name IF IT ISN'T ALREADY THERE! Otherwise, continue
                 if (!students.contains(myRst.getString("student_name"))){
@@ -448,6 +448,7 @@ private boolean requireTeacher() {
 
                 // Get the name of the course, add it to the list
                 String courseName = myRst2.getString("course_title");
+                System.out.println(courseName);
 
                 // Check if the course list name is already there. If it isn't, add it
                 if (!courseString.contains(courseName)){
