@@ -13,6 +13,8 @@ public class GradeActivity {
     private final JFrame frame = new JFrame("Mini Blackboard");
     private final List<Course> courses = new ArrayList<>();
 
+    private final List<String> courseString = new ArrayList<>();
+
     private final List<String> students = new ArrayList<>();
 
     private final Map<String, Double> grades = new LinkedHashMap<>();
@@ -335,7 +337,7 @@ private boolean requireTeacher() {
         }
 
 
-        //teacher();
+        teacher();
         
 
     }
@@ -415,8 +417,9 @@ private boolean requireTeacher() {
         // SOURCE: https://stackoverflow.com/questions/54599010/storing-one-column-of-a-database-table-into-an-arraylist
         // Additional Source: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html
 
-        // Select from the student table
+        // Select from the student and courses table
         String query = "SELECT * FROM students";
+        String query2 = "SELECT * FROM courses";
 
         // Connect to database
         try (Connection conn = db.getConnection();) {
@@ -424,8 +427,12 @@ private boolean requireTeacher() {
             // Apply query with prepared statement
             PreparedStatement myStmt = conn.prepareStatement(query);
 
+            PreparedStatement myStmt2 = conn.prepareStatement(query2);
+
             // Create a table of the returned data (result set)
             ResultSet myRst = myStmt.executeQuery();
+
+            ResultSet myRst2 = myStmt2.executeQuery();
 
             // Add students while there are still students to add
             while (myRst.next()) {
@@ -433,6 +440,11 @@ private boolean requireTeacher() {
                 // Add to student list each name IF IT ISN'T ALREADY THERE! Otherwise, continue
                 if (!students.contains(myRst.getString("student_name"))){
                     students.add(myRst.getString("student_name"));
+                }
+
+                // Add to course list each name IF IT ISN'T ALREADY THERE! Otherwise, continue
+                if (!courseString.contains(myRst2.getString("course_title"))){
+                    courseString.add(myRst2.getString("course_title"));
                 }
             }   
 
@@ -442,19 +454,20 @@ private boolean requireTeacher() {
         }
 
         // FILL COURSES TABLE WITH DATABASE! THIS IS DONE EXACTLY LIKE IT IS IN STUDENTS
-        String query2 = "SELECT * FROM courses";
-        try (Connection conn2 = db.getConnection();) {
-            PreparedStatement myStmt2 = conn2.prepareStatement(query2);
-            ResultSet myRst2 = myStmt2.executeQuery();
-            while (myRst2.next()) {
-                if (!courses.contains(myRst2.getString("course_title"))){
-                    students.add(myRst2.getString("course_title"));
-                }
-            }
-        } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to open database", JOptionPane.ERROR_MESSAGE);
-        }
+
+    //    String query2 = "SELECT * FROM courses";
+    //    try (Connection conn2 = db.getConnection();) {
+    //        PreparedStatement myStmt2 = conn2.prepareStatement(query2);
+    //        ResultSet myRst2 = myStmt2.executeQuery();
+    //        while (myRst2.next()) {
+    //            if (!courses.contains(myRst2.getString("course_title"))){
+    //                students.add(myRst2.getString("course_title"));
+    //            }
+    //        }
+    //    } catch (Exception e) {
+    //            e.printStackTrace();
+    //            JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to open database", JOptionPane.ERROR_MESSAGE);
+    //    }
 
 
         // The rest of the method and adding the student happens here
@@ -469,7 +482,7 @@ private boolean requireTeacher() {
         }
         teacher();
     }
-    
+
     private void createTest() {
      if (!requireTeacher()) return;
         Course c = choose("Choose class:", courses);
