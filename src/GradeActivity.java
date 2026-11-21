@@ -13,6 +13,7 @@ public class GradeActivity {
     private final JFrame frame = new JFrame("Mini Blackboard");
     private final List<Course> courses = new ArrayList<>();
 
+    // courseString's purpose is to make sure duplicate courses are not added in enroll method
     private final List<String> courseString = new ArrayList<>();
 
     private final List<String> students = new ArrayList<>();
@@ -287,7 +288,7 @@ private boolean requireTeacher() {
 }
 
 ///////////////////////////////////
-
+// This method adds the course database
     private void addClass() {
         if (!requireTeacher()) return;
         String name = ask("Class name (e.g. COMP 101):");
@@ -410,10 +411,13 @@ private boolean requireTeacher() {
 
 //////////////////////////////
 
+// This method enrolls students in classes
     private void enroll() {
      if (!requireTeacher()) return;
 
-        // FILL STUDENTS TABLE WITH DATABASE
+        // Fill the arrayLists in GradeActivity with the information from the database so that
+        // it can be selected by the user
+
         // SOURCE: https://stackoverflow.com/questions/54599010/storing-one-column-of-a-database-table-into-an-arraylist
         // Additional Source: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html
 
@@ -442,32 +446,24 @@ private boolean requireTeacher() {
                     students.add(myRst.getString("student_name"));
                 }
 
-                // Add to course list each name IF IT ISN'T ALREADY THERE! Otherwise, continue
-                if (!courseString.contains(myRst2.getString("course_title"))){
-                    courseString.add(myRst2.getString("course_title"));
+                // Get the name of the course, add it to the list
+                String courseName = myRst2.getString("course_title");
+
+                // Check if the course list name is already there. If it isn't, add it
+                if (!courseString.contains(courseName)){
+                    Course c = new Course(courseName);
+                    courses.add(c);
+
+                    // Add the course to courseString so it isn't added a second time.
+                    courseString.add(courseName);
                 }
+
             }   
 
         } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to open database", JOptionPane.ERROR_MESSAGE);
         }
-
-        // FILL COURSES TABLE WITH DATABASE! THIS IS DONE EXACTLY LIKE IT IS IN STUDENTS
-
-    //    String query2 = "SELECT * FROM courses";
-    //    try (Connection conn2 = db.getConnection();) {
-    //        PreparedStatement myStmt2 = conn2.prepareStatement(query2);
-    //        ResultSet myRst2 = myStmt2.executeQuery();
-    //        while (myRst2.next()) {
-    //            if (!courses.contains(myRst2.getString("course_title"))){
-    //                students.add(myRst2.getString("course_title"));
-    //            }
-    //        }
-    //    } catch (Exception e) {
-    //            e.printStackTrace();
-    //            JOptionPane.showMessageDialog(null, e.getMessage(), "Unable to open database", JOptionPane.ERROR_MESSAGE);
-    //    }
 
 
         // The rest of the method and adding the student happens here
