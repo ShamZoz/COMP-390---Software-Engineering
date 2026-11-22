@@ -1,21 +1,25 @@
+package src;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 public class MiniBlackboardData implements Serializable {
     private static final long serialVersionUID = 1L;
-
     List<GradeActivity.Course> courses;
     List<String> students;
     Map<String, Double> grades;
+    Map<String, StudentAccount> studentAccounts;
+    Map<String, StudentAccount> teacherAccounts;
 
     public MiniBlackboardData(List<GradeActivity.Course> courses,
                               List<String> students,
-                              Map<String, Double> grades) {
+                              Map<String, Double> grades,
+                              Map<String, StudentAccount> studentAccounts,
+                              Map<String, StudentAccount> teacherAccounts) {
         this.courses = new ArrayList<>(courses);
         this.students = new ArrayList<>(students);
         this.grades = new LinkedHashMap<>(grades);
+        this.studentAccounts = new LinkedHashMap<>(studentAccounts);
+        this.teacherAccounts = new LinkedHashMap<>(teacherAccounts);
     }
 }
