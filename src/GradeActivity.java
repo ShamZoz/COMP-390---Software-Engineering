@@ -18,6 +18,10 @@ public class GradeActivity {
 
     private final List<String> students = new ArrayList<>();
 
+    private final Map<String, StudentAccount> studentAccounts = new LinkedHashMap<>();
+    private final Map<String, StudentAccount> teacherAccounts = new LinkedHashMap<>();
+    private String currentStudent = null;
+
     private final Map<String, Double> grades = new LinkedHashMap<>();
     public static Database db = new Database("jdbc:sqlite:blackboard.db");
 
@@ -124,9 +128,13 @@ public class GradeActivity {
         return b;
     }
 
+    private void page(String heading, JButton... buttons) {
+        pageWithFooter(heading, null, buttons);
+    }
 
 // Page design
-    private void page(String heading, JButton... buttons) {
+    // An optional footer button lets the teacher log out from the bottom center.
+    private void pageWithFooter(String heading, JButton footerButton, JButton... buttons) {
         // Rainbow palette: dark labels stay readable on the bright cards.
         Color[] rainbow = {
             new Color(255, 139, 157), // Red
@@ -178,10 +186,16 @@ public class GradeActivity {
         p.add(header, BorderLayout.NORTH);
 
         // Two columns replace the long list; original button order is preserved.
-        JPanel cards = new JPanel(new GridLayout(0, 2, 16, 16));
+        JPanel cards = new JPanel(new GridLayout(0, 2, 16, 20));
         cards.setOpaque(false);
         for (int i = 0; i < buttons.length; i++) {
             buttons[i].setBackground(rainbow[i % rainbow.length]);
+            // Compact teacher buttons; other dashboards keep their original sizes.
+            if (footerButton != null) {
+                buttons[i].setPreferredSize(new Dimension(250, 76));
+                buttons[i].setFont(new Font("SansSerif", Font.BOLD, 15));
+                buttons[i].setBorder(BorderFactory.createEmptyBorder(12, 14, 12, 14));
+            }
             cards.add(buttons[i]);
         }
         JPanel cardArea = new JPanel(new BorderLayout());
@@ -209,12 +223,28 @@ public class GradeActivity {
         JLabel footer = new JLabel("Learn. Create. Achieve. / Mini Blackboard");
         footer.setFont(new Font("SansSerif", Font.PLAIN, 12));
         footer.setForeground(muted);
-        p.add(footer, BorderLayout.SOUTH);
+        if (footerButton == null) {
+            p.add(footer, BorderLayout.SOUTH);
+        } else {
+            footerButton.setBackground(rainbow[6]);
+            footerButton.setPreferredSize(new Dimension(180, 54));
+            footerButton.setFont(new Font("SansSerif", Font.BOLD, 15));
+            footerButton.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+            JPanel logoutRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            logoutRow.setOpaque(false);
+            logoutRow.add(footerButton);
+            JPanel bottom = new JPanel(new BorderLayout(0, 12));
+            bottom.setOpaque(false);
+            bottom.add(logoutRow, BorderLayout.CENTER);
+            bottom.add(footer, BorderLayout.SOUTH);
+            p.add(bottom, BorderLayout.SOUTH);
+        }
 
         frame.setContentPane(p);
         frame.revalidate();
         frame.repaint();
     }
+    
 
 
 // Prompt the user for a message
@@ -242,6 +272,7 @@ public class GradeActivity {
     page("Mini Blackboard",
         button("Teacher Dashboard", this::teacherLogin),
         button("Student Dashboard", this::student),
+        button("Help Guide", this::showHelpGuide),
         button("Exit", frame::dispose)
     );
 }
@@ -254,23 +285,83 @@ public class GradeActivity {
         return;
     }
 
-    page("Teacher Dashboard",
-        button("Add Class", this::addClass),
-        button("Add Student", this::addStudent),
-        button("Enroll Student", this::enroll),
-        button("Create Test", this::createTest),
-        button("View Grades", this::viewGrades),
-        button("Logout", this::teacherLogout));
 
-}
+    pageWithFooter("Teacher Dashboard", button("Log Out", this::teacherLogout),
+            button("Add Class", this::addClass),
+            button("Add Student", this::addStudent),
+            button("Enroll Student", this::enroll),
+            button("Create Test", this::createTest),
+            button("View Grades", this::viewGrades),
+            button("Logout", this::teacherLogout));
+            button("View Class Average", this::viewClassAverage));
+    }
+
 private boolean teacherAuthenticated = false;
 
 // Verify the teacher before allowing access
 private void teacherLogin() {
-    if (TeacherLogin.verifyAccess(frame)) {
+    String[] choices = {"Existing Teacher Login", "Registered Teacher Login", "Cancel"};
+    int choice = JOptionPane.showOptionDialog(frame, "Choose teacher login method:",
+            "Teacher Login", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+            null, choices, choices[0]);
+    boolean verified = false;
+    if (choice == 0) verified = TeacherLogin.verifyAccess(frame);
+    else if (choice == 1) verified = StudentLogin.verifyAccess(frame, teacherAccounts) != null;
+    if (verified) {
+        currentStudent = null;
         teacherAuthenticated = true;
         teacher();
+    } else if (choice == 2 || choice == JOptionPane.CLOSED_OPTION) home();
+}
+
+// Registration from the welcome screen requires approval from an existing teacher.
+private void registerTeacher() {
+    message("An existing teacher must approve new teacher accounts.");
+    if (TeacherLogin.verifyAccess(frame)) {
+        createTeacherAccountApproved();
     }
+    home();
+}
+
+private void createTeacherAccount() {
+    if (!requireTeacher()) return;
+    createTeacherAccountApproved();
+    teacher();
+}
+
+private void createTeacherAccountApproved() {
+    String name = ask("New teacher username (unique):");
+    if (name == null) return;
+    if (teacherAccounts.containsKey(name) || students.contains(name)) {
+        message("That username is already in use.");
+        return;
+    }
+    char[] password = StudentLogin.askNewPassword(frame, name);
+    if (password == null) return;
+    try {
+        teacherAccounts.put(name, StudentAccount.create(password));
+        saveData();
+        message("Teacher account created: " + name);
+    } finally { Arrays.fill(password, '\0'); }
+}
+
+private void registerStudent() {
+    String name = ask("Choose your student username:");
+    if (name == null) { home(); return; }
+    if (students.contains(name) || teacherAccounts.containsKey(name)) {
+        message("That username is already in use. Please choose another.");
+        home(); return;
+    }
+    char[] password = StudentLogin.askNewPassword(frame, name);
+    if (password != null) {
+        try {
+            students.add(name);
+            studentAccounts.put(name, StudentAccount.create(password));
+            saveData();
+            message("Student account created! You can now log in.");
+        } finally { Arrays.fill(password, '\0'); }
+    }
+    home();
 }
 
 // Log out of the teacher dashboard
@@ -411,6 +502,24 @@ private boolean requireTeacher() {
 
 //////////////////////////////
 
+// Also lets teachers activate older student names loaded from blackboard.dat.
+    private void setStudentPassword() {
+        if (!requireTeacher()) return;
+        String name = choose("Choose student:", students);
+        if (name == null) { teacher(); return; }
+        char[] password = StudentLogin.askNewPassword(frame, name);
+        if (password != null) {
+            try {
+                studentAccounts.put(name, StudentAccount.create(password));
+                saveData();
+                message("Password set for " + name);
+            } finally {
+                Arrays.fill(password, '\0');
+            }
+        }
+        teacher();
+    }
+
 // This method enrolls students in classes
     private void enroll() {
      if (!requireTeacher()) return;
@@ -522,11 +631,151 @@ private boolean requireTeacher() {
         area.setEditable(false);
         JOptionPane.showMessageDialog(frame, new JScrollPane(area), "Gradebook", JOptionPane.INFORMATION_MESSAGE);
     }
+
+    private void viewClassAverage() {
+        if (!requireTeacher()) return;
+        if (courses.isEmpty()) {
+            message("No classes available yet.");
+            return;
+        }
+
+        JComboBox<Course> classDropdown = new JComboBox<>(courses.toArray(new Course[0]));
+        JLabel averageLabel = new JLabel("", SwingConstants.CENTER);
+        averageLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        ClassAveragePieChart chart = new ClassAveragePieChart();
+
+        // Recalculate and redraw whenever the professor selects another class.
+        Runnable updateAverage = () -> {
+            Course selected = (Course) classDropdown.getSelectedItem();
+            if (selected == null) return;
+            double average = calculateClassAverage(selected);
+            averageLabel.setText(average < 0 ? "No grades yet for this class."
+                    : String.format("Class average: %.1f%%", average));
+            chart.setAverage(average);
+        };
+        classDropdown.addActionListener(e -> updateAverage.run());
+        updateAverage.run();
+
+        JPanel selection = new JPanel(new BorderLayout(10, 0));
+        selection.add(new JLabel("Select class:"), BorderLayout.WEST);
+        selection.add(classDropdown, BorderLayout.CENTER);
+        JPanel heading = new JPanel(new BorderLayout(0, 14));
+        heading.add(selection, BorderLayout.NORTH);
+        heading.add(averageLabel, BorderLayout.CENTER);
+
+        JLabel averageLegend = new JLabel("Average score");
+        averageLegend.setForeground(ClassAveragePieChart.SCORE_COLOR.darker());
+        JLabel remainingLegend = new JLabel("Remaining to 100%");
+        remainingLegend.setForeground(ClassAveragePieChart.REMAINING_COLOR.darker());
+        JPanel legend = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        legend.add(averageLegend);
+        legend.add(remainingLegend);
+        JPanel notes = new JPanel(new BorderLayout(0, 10));
+        notes.add(legend, BorderLayout.NORTH);
+        notes.add(new JLabel("Based on submitted tests; missing tests are excluded.",
+                SwingConstants.CENTER), BorderLayout.SOUTH);
+
+        JPanel content = new JPanel(new BorderLayout(0, 16));
+        content.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        content.add(heading, BorderLayout.NORTH);
+        content.add(chart, BorderLayout.CENTER);
+        content.add(notes, BorderLayout.SOUTH);
+        JOptionPane.showMessageDialog(frame, content, "View Class Average",
+                JOptionPane.PLAIN_MESSAGE);
+    }
+
+    // Java2D draws the pie chart, so no extra chart libraries are needed.
+    private static class ClassAveragePieChart extends JPanel {
+        private static final Color SCORE_COLOR = new Color(50, 155, 105);
+        private static final Color REMAINING_COLOR = new Color(150, 161, 185);
+        private double average = -1.0;
+
+        ClassAveragePieChart() {
+            setPreferredSize(new Dimension(420, 280));
+        }
+
+        void setAverage(double value) {
+            average = value;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+                int diameter = Math.max(0, Math.min(getWidth(), getHeight()) - 24);
+                int x = (getWidth() - diameter) / 2;
+                int y = (getHeight() - diameter) / 2;
+                g2.setColor(REMAINING_COLOR);
+                g2.fillOval(x, y, diameter, diameter);
+                if (average >= 0) {
+                    g2.setColor(SCORE_COLOR);
+                    g2.fill(new java.awt.geom.Arc2D.Double(x, y, diameter, diameter,
+                            90, -Math.max(0, Math.min(100, average)) * 3.6,
+                            java.awt.geom.Arc2D.PIE));
+                } else {
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(new Font("SansSerif", Font.BOLD, 18));
+                    String text = "No grades yet";
+                    FontMetrics metrics = g2.getFontMetrics();
+                    g2.drawString(text, (getWidth() - metrics.stringWidth(text)) / 2,
+                            (getHeight() + metrics.getAscent() - metrics.getDescent()) / 2);
+                }
+            } finally {
+                g2.dispose();
+            }
+        }
+    }
+
+    // Read existing saved grades without changing scores or how tests are stored.
+    private double calculateClassAverage(Course course) {
+        double total = 0.0;
+        int count = 0;
+        Set<String> countedKeys = new HashSet<>();
+        for (String student : course.enrolled) {
+            for (Test test : course.tests) {
+                String key = student + " | " + course.name + " | " + test.name;
+                Double grade = grades.get(key);
+                // Each saved submission counts once, even if test names repeat.
+                if (grade != null && countedKeys.add(key)) {
+                    total += grade;
+                    count++;
+                }
+            }
+        }
+        // A negative result means no submissions; a real 0% is still a grade.
+        return count == 0 ? -1.0 : total / count;
+    }
+
+
     private void student() {
         String name = choose("Select your student name:", students);
         if (name == null) { home(); return; }
         studentDashboard(name);
     }
+
+    // Help guide method
+    protected void showHelpGuide() { message("Help guide is not available."); }
+
+    protected boolean checkStudentPassword(String name) { return true; }
+
+    private boolean requireStudent(String name) {
+        if (currentStudent == null || !currentStudent.equals(name)) {
+            message("Student login required.");
+            home();
+            return false;
+        }
+        return true;
+    }
+
+    private void studentLogout() {
+        currentStudent = null;
+        home();
+    }
+
     private void studentDashboard(String name) {
         page("Student: " + name,
                 button("View My Classes", () -> viewClasses(name)),
@@ -633,7 +882,7 @@ private boolean requireTeacher() {
     // Save all application data
     private void saveData() {
         MiniBlackboardData data =
-             new MiniBlackboardData(courses, students, grades);
+             new MiniBlackboardData(courses, students, grades, studentAccounts, teacherAccounts);
 
         try (ObjectOutputStream out =
                 new ObjectOutputStream(
@@ -673,6 +922,13 @@ private boolean requireTeacher() {
             grades.clear();
             grades.putAll(data.grades);
 
+            studentAccounts.clear();
+            if (data.studentAccounts != null) {
+                studentAccounts.putAll(data.studentAccounts);
+            }
+            teacherAccounts.clear();
+            if (data.teacherAccounts != null) teacherAccounts.putAll(data.teacherAccounts);
+
             System.out.println("Data loaded successfully.");
 
         } catch (IOException | ClassNotFoundException e) {
@@ -687,4 +943,8 @@ private boolean requireTeacher() {
         SwingUtilities.invokeLater(() -> new GradeActivity().showExam());
 
     }
+    protected JFrame getFrame() { return frame; }
+    protected List<String> getStudents() { return students; }
+    protected List<Course> getCourses() { return courses; }
+    protected Map<String, Double> getGrades() { return grades; }
 }
