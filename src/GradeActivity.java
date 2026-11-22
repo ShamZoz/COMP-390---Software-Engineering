@@ -293,7 +293,7 @@ public class GradeActivity {
             button("Create Test", this::createTest),
             button("View Grades", this::viewGrades),
             button("Logout", this::teacherLogout));
-            button("View Class Average", this::viewClassAverage));
+            button("View Class Average", this::viewClassAverage);
     }
 
 private boolean teacherAuthenticated = false;
