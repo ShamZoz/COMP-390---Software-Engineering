@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
+
 // Main class for the grade activity
 public class GradeActivity {
     private double score;
@@ -128,7 +129,7 @@ public class GradeActivity {
         return b;
     }
 
-    private void page(String heading, JButton... buttons) {
+    public void page(String heading, JButton... buttons) {
         pageWithFooter(heading, null, buttons);
     }
 
@@ -752,8 +753,10 @@ private boolean requireTeacher() {
 
 
     private void student() {
-        String name = choose("Select your student name:", students);
+        String name = StudentLogin.verifyAccess(frame, studentAccounts);
+        //String name = choose("Select your student name:", students);
         if (name == null) { home(); return; }
+        currentStudent = name;
         studentDashboard(name);
     }
 

@@ -1,7 +1,5 @@
-package src;
 import java.io.Serializable;
 import java.util.*;
-
 
 public class MiniBlackboardData implements Serializable {
     private static final long serialVersionUID = 1L;

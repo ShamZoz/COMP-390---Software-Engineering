@@ -1,9 +1,9 @@
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import javax.swing.*;
 
 // Extends GradeActivity with a Help Guide (password resets) and a Search menu.
 // Teachers search all students, classes, and tests on the Teacher Dashboard.
@@ -27,9 +27,8 @@ public class HelpGuideGradeActivity extends GradeActivity {
     }
 
     // ---- Search menu: shown only on the Teacher and Student dashboards ----
-
-    @Override
-    protected void page(String heading, JButton... buttons) {
+    @Override 
+    public void page(String heading, JButton... buttons) {
         super.page(heading, buttons);
         boolean teacher = heading.equals("Teacher Dashboard");
         boolean student = heading.startsWith(STUDENT_HEADING);

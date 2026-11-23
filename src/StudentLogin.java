@@ -1,7 +1,6 @@
-package src;
-import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import javax.swing.*;
 
 public class StudentLogin {
     public static String verifyAccess(JFrame parent, Map<String, StudentAccount> accounts) {

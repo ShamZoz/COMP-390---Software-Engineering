@@ -1,4 +1,3 @@
-package src;
 import java.io.Serializable;
 
 
@@ -22,4 +21,3 @@ public class StudentAccount implements Serializable {
         return PasswordSecurity.verifyPassword(password, salt, hash);
     }
 }
-
